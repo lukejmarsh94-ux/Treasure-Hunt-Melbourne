@@ -140,9 +140,27 @@ button:focus-visible, .digit:focus-visible { outline: 3px solid var(--brass-hi);
 .reveal.enter > :nth-child(5) { animation-delay: 1000ms; }
 @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
 
+/* Countdown timer: sits under the message; turns red in the last minute and pulses in the last 10 seconds */
+.timer { display: grid; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 22px; padding: 22px 24px 24px; }
+.timer.enter { animation: card-in 560ms cubic-bezier(.2,.9,.3,1.15) 1200ms both; }
+.timer-digits {
+  font-family: var(--mono); font-weight: 600; font-size: clamp(56px, 18vw, 76px); line-height: 1;
+  font-variant-numeric: tabular-nums; color: var(--ink); transition: color 300ms;
+}
+.timer-bar { height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.timer-fill { height: 100%; background: var(--brass); border-radius: inherit; transform-origin: left; transition: transform 250ms linear, background-color 300ms; }
+.timer-note { margin: 0; min-height: 1.5em; font-size: 15px; color: var(--muted); }
+.timer.low .timer-digits { color: var(--wrong); }
+.timer.low .timer-fill { background: var(--wrong); }
+.timer.final .timer-digits { animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(1.06); } }
+.timer.done .timer-digits { color: var(--wrong); }
+.timer.done .timer-note { color: var(--wrong); font-weight: 600; }
+
 @media (prefers-reduced-motion: reduce) {
   .shackle, .digit span { transition: none; }
-  .lock.shake, .digit.set, .lock.drop, .lock.open .shackle, .reveal.enter > * { animation: none; }
+  .lock.shake, .digit.set, .lock.drop, .lock.open .shackle, .reveal.enter > *, .timer.final .timer-digits { animation: none; }
+  .timer.enter { animation: fade-in 300ms ease-out both; }
   .lock.open .shackle { transform: translateY(-22px); }
   .reveal.enter { animation: fade-in 300ms ease-out both; }
   @keyframes fade-in { from { opacity: 0; } }
@@ -174,12 +192,22 @@ button:focus-visible, .digit:focus-visible { outline: 3px solid var(--brass-hi);
     <p class="cta">The Golden ticket was hiding in plain sight, in fact it was at the bottom of your stairs...The question is... can you get to it before the timer runs out?</p>
     <p class="sign">Love Luke!!</p>
   </section>
+
+  <section class="timer" id="timer" hidden aria-label="Countdown timer">
+    <div class="eyebrow" id="timerLabel">Time remaining</div>
+    <div class="timer-digits" id="timerDigits" role="timer">0:00</div>
+    <div class="timer-bar" aria-hidden="true"><div class="timer-fill" id="timerFill"></div></div>
+    <p class="timer-note" id="timerNote" role="status" aria-live="polite">The clock is ticking…</p>
+  </section>
 </main>
 
 <script>
 (function () {
   // ===== THE COMBINATION: change these four digits (keep the quotes) =====
   var CODE = '6082';
+
+  // ===== THE TIMER: how many minutes Jo gets once the lock opens =====
+  var TIMER_MINUTES = 5;
 
   var values = [0, 0, 0, 0];
   var wheelsEl = document.getElementById('wheels');
@@ -291,6 +319,45 @@ button:focus-visible, .digit:focus-visible { outline: 3px solid var(--brass-hi);
     reveal.classList.add('enter');
     reveal.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
     setTimeout(sideCannons, 250);
+    startTimer();
+  }
+
+  // ----- Countdown timer (based on the clock, so it stays accurate if the phone sleeps) -----
+  function startTimer() {
+    var timerEl = document.getElementById('timer');
+    var digitsEl = document.getElementById('timerDigits');
+    var fillEl = document.getElementById('timerFill');
+    var noteEl = document.getElementById('timerNote');
+    var total = TIMER_MINUTES * 60 * 1000;
+    var end = Date.now() + total;
+    var warned = false;
+
+    function format(secs) {
+      var m = Math.floor(secs / 60), s = secs % 60;
+      return m + ':' + (s < 10 ? '0' : '') + s;
+    }
+    function tick() {
+      var left = Math.max(0, end - Date.now());
+      var secs = Math.ceil(left / 1000);
+      digitsEl.textContent = format(secs);
+      fillEl.style.transform = 'scaleX(' + (left / total) + ')';
+      timerEl.classList.toggle('low', secs <= 60);
+      timerEl.classList.toggle('final', secs > 0 && secs <= 10);
+      if (!warned && secs <= 60 && total > 60000) {
+        warned = true;
+        noteEl.textContent = 'One minute left. Hurry!';
+      }
+      if (left === 0) {
+        clearInterval(timer);
+        timerEl.classList.add('done');
+        document.getElementById('timerLabel').textContent = 'Time’s up';
+        noteEl.textContent = 'Time’s up! Did you find the Golden ticket?';
+      }
+    }
+    timerEl.hidden = false;
+    timerEl.classList.add('enter');
+    var timer = setInterval(tick, 250);
+    tick();
   }
 
   // Unlock sequence: wheels glow in turn → shackle pops → confetti → lock drops away → message
