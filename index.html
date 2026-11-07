@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Jo's Combination Lock Challenge</title>
+<title>Jo's Combination Lock</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Figtree:wght@400;500;600&family=Spline+Sans+Mono:wght@500;600&display=swap">
 <style>
@@ -120,9 +120,9 @@ button:focus-visible, .digit:focus-visible { outline: 3px solid var(--brass-hi);
 <body>
 <main>
   <header>
-    <div class="eyebrow">Melbourne · 19 December</div>
-    <h1>Your four numbers, Jo</h1>
-    <p class="sub">Dial in the digits from your scorecard, in the order you found them.</p>
+    <div class="eyebrow">The Hunt for the Golden Ticket · 19 December</div>
+    <h1>Golden Ticket Combination Lock</h1>
+    <p class="sub">Input the correct tickets to find out the location of your Golden Ticket.</p>
   </header>
 
   <section id="lockView" aria-label="Combination lock">
@@ -160,9 +160,9 @@ button:focus-visible, .digit:focus-visible { outline: 3px solid var(--brass-hi);
   var wheelsEl = document.getElementById('wheels');
   var digits = [];
   var wrongLines = [
-    'Not quite. Check your scorecard and try again.',
-    'Riley says no. One of those numbers is off.',
-    'Close? Retrace your steps and try once more.',
+    'Not quite. But dont worry, you can try again.',
+    'Riley says no. At least one of those numbers is off.',
+    'Close? But not quite.',
     'Still locked. Ask Luke for a hint if you need one.'
   ];
   var wrongCount = 0;
