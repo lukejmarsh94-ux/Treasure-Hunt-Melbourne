@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jo's Combination Lock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Figtree:wght@400;500;600&family=Spline+Sans+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: one centred brass lock on a tram-green ground; four tumbler wheels, one Open button, a reveal card that replaces the lock. */
+:root {
+  --ground: #e9ede6;
+  --panel: #f6f7f2;
+  --ink: #1d2a22;
+  --muted: #5b6a60;
+  --brass: #a8792a;
+  --brass-hi: #d8b46a;
+  --wheel: #ffffff;
+  --line: #cfd6cc;
+  --wrong: #a3392f;
+  --display: "Gloock", "Georgia", serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "Spline Sans Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #12201a; --panel: #1a2b23; --ink: #eef1e8; --muted: #a3b2a7;
+    --brass: #d4a856; --brass-hi: #f0d398; --wheel: #0e1814; --line: #2f4339; --wrong: #f08a7c;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #12201a; --panel: #1a2b23; --ink: #eef1e8; --muted: #a3b2a7;
+  --brass: #d4a856; --brass-hi: #f0d398; --wheel: #0e1814; --line: #2f4339; --wrong: #f08a7c;
+  color-scheme: dark;
+}
+html, body { min-height: 100%; }
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px;
+  display: grid;
+  place-items: center;
+}
+main { width: 100%; max-width: 420px; display: grid; gap: 28px; text-align: center; }
+.eyebrow { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(34px, 9vw, 44px); line-height: 1.08; margin: 6px 0 0; text-wrap: balance; }
+.sub { color: var(--muted); margin: 10px auto 0; max-width: 32ch; }
+
+.lock {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 26px 18px 22px;
+  display: grid;
+  gap: 20px;
+  position: relative;
+}
+.shackle {
+  width: 120px; height: 64px; margin: -84px auto 0;
+  border: 12px solid var(--brass); border-bottom: none;
+  border-radius: 70px 70px 0 0;
+  transition: transform 500ms cubic-bezier(.2,.9,.3,1.3);
+}
+.lock.open .shackle { transform: translateY(-22px); }
+.wheels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.wheel { display: grid; gap: 6px; justify-items: center; }
+.nudge {
+  width: 100%; height: 36px; border-radius: 10px; border: 1px solid var(--line);
+  background: transparent; color: var(--muted); font-size: 16px; cursor: pointer;
+}
+.nudge:hover { color: var(--ink); border-color: var(--brass); }
+.digit {
+  width: 100%; aspect-ratio: 3 / 4; max-width: 100%;
+  display: grid; place-items: center;
+  background: var(--wheel);
+  border: 2px solid var(--brass);
+  border-radius: 12px;
+  font-family: var(--mono); font-weight: 600; font-size: clamp(34px, 11vw, 46px);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  cursor: pointer;
+  user-select: none;
+  box-shadow: inset 0 10px 14px -12px var(--brass-hi), inset 0 -10px 14px -12px var(--brass-hi);
+}
+.digit span { display: block; transition: transform 160ms ease-out; }
+.digit.tick span { transform: translateY(-6px); }
+button:focus-visible, .digit:focus-visible { outline: 3px solid var(--brass-hi); outline-offset: 2px; }
+.open-btn {
+  font-family: var(--body); font-weight: 600; font-size: 17px;
+  padding: 14px 18px; border-radius: 999px; border: none;
+  background: var(--brass); color: var(--panel); cursor: pointer;
+}
+.open-btn:hover { background: var(--brass-hi); color: var(--ink); }
+.status { min-height: 1.5em; font-size: 15px; color: var(--muted); margin: 0; }
+.status.wrong { color: var(--wrong); }
+.lock.shake { animation: shake 380ms ease-in-out; }
+@keyframes shake { 20%,60% { transform: translateX(-8px); } 40%,80% { transform: translateX(8px); } }
+.hint { font-size: 13px; color: var(--muted); margin: 0; }
+
+.reveal { display: grid; gap: 14px; text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 22px; padding: 28px 24px; }
+.reveal h2 { font-family: var(--display); font-weight: 400; font-size: 34px; line-height: 1.1; margin: 0; text-wrap: balance; }
+.reveal p { margin: 0; max-width: 60ch; }
+.reveal .sign { font-family: var(--display); font-size: 22px; color: var(--brass); }
+.reveal .cta { font-weight: 600; border-top: 1px solid var(--line); padding-top: 14px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .shackle, .digit span { transition: none; }
+  .lock.shake { animation: none; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">Melbourne · 19 December</div>
+    <h1>Your four numbers, Jo</h1>
+    <p class="sub">Dial in the digits from your scorecard, in the order you found them.</p>
+  </header>
+
+  <section id="lockView" aria-label="Combination lock">
+    <div class="lock" id="lock">
+      <div class="shackle" aria-hidden="true"></div>
+      <div class="wheels" id="wheels"></div>
+      <button class="open-btn" id="openBtn" type="button">Open</button>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+      <p class="hint">Tap a number or use the arrows to turn each wheel.</p>
+    </div>
+  </section>
+
+  <section class="reveal" id="reveal" hidden aria-live="polite">
+    <div class="eyebrow">Unlocked</div>
+    <h2>I love you lots!</h2>
+    <p>You are a clever sausage....you managed to solve my treasure hunt and unlock the digital lock!! But I know you are looking for the Golden ticket...well for that you are going to have to face your biggest fear yet...</p>
+    <p class="cta">The Golden ticket was hiding in plain sight, in fact it was at the bottom of your stairs...The question is... can you get to it before the timer runs out?</p>
+    <p class="sign">Love Luke!!</p>
+  </section>
+</main>
+
+<script>
+(function () {
+  var TARGET = 319861812; // hashed code, so it isn't readable in the page source
+  function hash(s) {
+    var h = 0x811c9dc5;
+    for (var i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    return h >>> 0;
+  }
+
+  var values = [0, 0, 0, 0];
+  var wheelsEl = document.getElementById('wheels');
+  var digits = [];
+  var wrongLines = [
+    'Not quite. Check your scorecard and try again.',
+    'Riley says no. One of those numbers is off.',
+    'Close? Retrace your steps and try once more.',
+    'Still locked. Ask Luke for a hint if you need one.'
+  ];
+  var wrongCount = 0;
+
+  function render(i, animate) {
+    var d = digits[i];
+    d.firstChild.textContent = values[i];
+    d.setAttribute('aria-valuenow', values[i]);
+    d.setAttribute('aria-valuetext', String(values[i]));
+    if (animate) {
+      d.classList.remove('tick'); void d.offsetWidth; d.classList.add('tick');
+      setTimeout(function () { d.classList.remove('tick'); }, 160);
+    }
+  }
+  function turn(i, step) {
+    values[i] = (values[i] + step + 10) % 10;
+    render(i, true);
+    setStatus('', false);
+  }
+
+  for (var i = 0; i < 4; i++) {
+    (function (i) {
+      var w = document.createElement('div');
+      w.className = 'wheel';
+      var up = document.createElement('button');
+      up.type = 'button'; up.className = 'nudge'; up.id = 'up' + i;
+      up.setAttribute('aria-label', 'Wheel ' + (i + 1) + ' up'); up.textContent = '▲';
+      var d = document.createElement('div');
+      d.className = 'digit'; d.id = 'digit' + i; d.tabIndex = 0;
+      d.setAttribute('role', 'spinbutton');
+      d.setAttribute('aria-label', 'Digit ' + (i + 1));
+      d.setAttribute('aria-valuemin', '0'); d.setAttribute('aria-valuemax', '9');
+      d.appendChild(document.createElement('span'));
+      var down = document.createElement('button');
+      down.type = 'button'; down.className = 'nudge'; down.id = 'down' + i;
+      down.setAttribute('aria-label', 'Wheel ' + (i + 1) + ' down'); down.textContent = '▼';
+      up.addEventListener('click', function () { turn(i, 1); });
+      down.addEventListener('click', function () { turn(i, -1); });
+      d.addEventListener('click', function () { turn(i, 1); });
+      d.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowUp') { e.preventDefault(); turn(i, 1); }
+        else if (e.key === 'ArrowDown') { e.preventDefault(); turn(i, -1); }
+        else if (/^[0-9]$/.test(e.key)) {
+          values[i] = Number(e.key); render(i, true);
+          if (i < 3) digits[i + 1].focus();
+        } else if (e.key === 'Enter') { tryOpen(); }
+      });
+      w.appendChild(up); w.appendChild(d); w.appendChild(down);
+      wheelsEl.appendChild(w);
+      digits.push(d);
+      render(i, false);
+    })(i);
+  }
+
+  var statusEl = document.getElementById('status');
+  function setStatus(text, wrong) {
+    statusEl.textContent = text;
+    statusEl.classList.toggle('wrong', !!wrong);
+  }
+
+  var lock = document.getElementById('lock');
+  function tryOpen() {
+    if (hash(values.join('')) === TARGET) {
+      lock.classList.add('open');
+      setStatus('Unlocked.', false);
+      setTimeout(function () {
+        document.getElementById('lockView').hidden = true;
+        var r = document.getElementById('reveal');
+        r.hidden = false;
+        r.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 650);
+    } else {
+      setStatus(wrongLines[wrongCount % wrongLines.length], true);
+      wrongCount++;
+      lock.classList.remove('shake'); void lock.offsetWidth; lock.classList.add('shake');
+    }
+  }
+  document.getElementById('openBtn').addEventListener('click', tryOpen);
+})();
+</script>
+</body>
+</html>
