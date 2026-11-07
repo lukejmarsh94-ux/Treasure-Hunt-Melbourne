@@ -8,35 +8,73 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Figtree:wght@400;500;600&family=Spline+Sans+Mono:wght@500;600&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.js"></script>
 <style>
-/* Layout: one centred brass lock on a tram-green ground; four tumbler wheels, one Open button, a reveal card that replaces the lock. */
+/* Layout: one centred brass lock on an old parchment treasure map (dotted trail to a red X, compass rose); four tumbler wheels, one Open button, a reveal card that replaces the lock. */
 :root {
-  --ground: #e9ede6;
-  --panel: #f6f7f2;
-  --ink: #1d2a22;
-  --muted: #5b6a60;
-  --brass: #a8792a;
-  --brass-hi: #d8b46a;
-  --wheel: #ffffff;
-  --line: #cfd6cc;
+  --ground: #e6d3a8;
+  --panel: #f8efdb;
+  --ink: #3a2a18;
+  --muted: #5f4c33;
+  --brass: #9a6b1f;
+  --brass-hi: #d8ac5a;
+  --wheel: #fffaf0;
+  --line: #d9c49c;
   --wrong: #a3392f;
+  --map-ink: #7a5a33;
+  --map-x: #b0382c;
+  --edge: rgba(92, 56, 20, .55);
+  --stain: rgba(150, 105, 50, .16);
+  --glow: transparent;
+  --shadow: rgba(70, 42, 12, .35);
   --display: "Gloock", "Georgia", serif;
   --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "Spline Sans Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --ground: #12201a; --panel: #1a2b23; --ink: #eef1e8; --muted: #a3b2a7;
-    --brass: #d4a856; --brass-hi: #f0d398; --wheel: #0e1814; --line: #2f4339; --wrong: #f08a7c;
+    --ground: #2a1e12; --panel: #33261a; --ink: #f3e7cf; --muted: #c9b28c;
+    --brass: #d4a856; --brass-hi: #f0d398; --wheel: #1f160d; --line: #4d3a27; --wrong: #f08a7c;
+    --map-ink: #b8935a; --map-x: #e0705f; --edge: rgba(0, 0, 0, .65); --stain: rgba(0, 0, 0, .22);
+    --glow: rgba(255, 180, 90, .12); --shadow: rgba(0, 0, 0, .5);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --ground: #12201a; --panel: #1a2b23; --ink: #eef1e8; --muted: #a3b2a7;
-  --brass: #d4a856; --brass-hi: #f0d398; --wheel: #0e1814; --line: #2f4339; --wrong: #f08a7c;
+  --ground: #2a1e12; --panel: #33261a; --ink: #f3e7cf; --muted: #c9b28c;
+  --brass: #d4a856; --brass-hi: #f0d398; --wheel: #1f160d; --line: #4d3a27; --wrong: #f08a7c;
+  --map-ink: #b8935a; --map-x: #e0705f; --edge: rgba(0, 0, 0, .65); --stain: rgba(0, 0, 0, .22);
+  --glow: rgba(255, 180, 90, .12); --shadow: rgba(0, 0, 0, .5);
   color-scheme: dark;
 }
 [hidden] { display: none !important; }
 html, body { min-height: 100%; }
+
+/* ----- Treasure map backdrop: parchment, fold creases, faint chart grid, stains, burnt edges ----- */
+.map { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.map-paper {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 75% 70% at 50% 45%, transparent 55%, var(--edge) 100%),
+    radial-gradient(circle at 50% 40%, var(--glow), transparent 60%),
+    linear-gradient(90deg, transparent calc(50% - 1px), rgba(80, 50, 20, .14) 50%, transparent calc(50% + 1px)),
+    linear-gradient(0deg, transparent calc(33.3% - 1px), rgba(80, 50, 20, .12) 33.3%, transparent calc(33.3% + 1px)),
+    linear-gradient(0deg, transparent calc(66.6% - 1px), rgba(80, 50, 20, .12) 66.6%, transparent calc(66.6% + 1px)),
+    radial-gradient(circle at 18% 22%, var(--stain), transparent 18%),
+    radial-gradient(circle at 82% 64%, var(--stain), transparent 22%),
+    radial-gradient(circle at 30% 85%, var(--stain), transparent 14%),
+    repeating-linear-gradient(0deg, transparent 0 47px, rgba(122, 90, 51, .09) 47px 48px),
+    repeating-linear-gradient(90deg, transparent 0 47px, rgba(122, 90, 51, .09) 47px 48px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .22 0 0 0 0 .08 0 0 0 .32 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    var(--ground);
+}
+.map svg { position: absolute; }
+.map-trail { inset: 0; width: 100%; height: 100%; }
+.map-trail path { fill: none; stroke: var(--map-ink); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 1 10; opacity: .7; }
+.map-x { width: 46px; height: 46px; left: calc(88% - 23px); top: calc(92% - 23px); }
+.map-x path { stroke: var(--map-x); stroke-width: 7; stroke-linecap: round; fill: none; }
+.map-compass { width: clamp(80px, 22vw, 128px); height: auto; bottom: 14px; left: 14px; opacity: .55; color: var(--map-ink); }
+main { position: relative; z-index: 1; }
+.lock, .reveal, .timer { box-shadow: 0 1px 0 rgba(255, 255, 255, .35) inset, 0 14px 32px -14px var(--shadow); }
+
 body {
   background: var(--ground);
   color: var(--ink);
@@ -168,6 +206,25 @@ button:focus-visible, .digit:focus-visible { outline: 3px solid var(--brass-hi);
 </style>
 </head>
 <body>
+<div class="map" aria-hidden="true">
+  <div class="map-paper"></div>
+  <!-- Dotted trail that winds down the map and ends at the X -->
+  <svg class="map-trail" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <path vector-effect="non-scaling-stroke" d="M6 4 C 20 14, 2 24, 14 34 S 30 46, 12 58 S 4 76, 30 80 S 70 70, 80 82 S 86 90, 88 92"/>
+  </svg>
+  <svg class="map-x" viewBox="0 0 46 46"><path d="M9 9 L37 37 M37 9 L9 37"/></svg>
+  <!-- Compass rose -->
+  <svg class="map-compass" viewBox="-60 -64 120 124" fill="none" stroke="currentColor">
+    <circle r="42" stroke-width="2"/>
+    <circle r="36" stroke-width="1"/>
+    <g fill="currentColor" stroke="none">
+      <polygon points="0,-52 7,-7 0,0" /><polygon points="52,0 7,7 0,0" /><polygon points="0,52 -7,7 0,0" /><polygon points="-52,0 -7,-7 0,0" />
+      <g opacity=".45"><polygon points="0,-52 -7,-7 0,0" /><polygon points="52,0 7,-7 0,0" /><polygon points="0,52 7,7 0,0" /><polygon points="-52,0 -7,7 0,0" /></g>
+      <g transform="rotate(45)" opacity=".6"><polygon points="0,-32 5,-5 -5,-5" /><polygon points="32,0 5,5 5,-5" /><polygon points="0,32 -5,5 5,5" /><polygon points="-32,0 -5,-5 -5,5" /></g>
+      <text y="-54" text-anchor="middle" font-family="Gloock, Georgia, serif" font-size="14">N</text>
+    </g>
+  </svg>
+</div>
 <main>
   <header>
     <div class="eyebrow">The Hunt for the Golden Ticket · 19 December</div>
@@ -284,7 +341,7 @@ button:focus-visible, .digit:focus-visible { outline: 3px solid var(--brass-hi);
 
   // ----- Confetti (gold, brass, cream and a touch of tram green) -----
   var hasConfetti = typeof window.confetti === 'function';
-  var GOLD = ['#d8b46a', '#a8792a', '#f0d398', '#fff4d6', '#2f6b4f'];
+  var GOLD = ['#d8b46a', '#a8792a', '#f0d398', '#fff4d6', '#b0382c'];
   var shapes;
   if (hasConfetti && confetti.shapeFromPath) {
     var star = confetti.shapeFromPath({ path: 'M5 0L6.2 3.5L10 3.8L7 6.2L8 10L5 7.8L2 10L3 6.2L0 3.8L3.8 3.5Z' });
